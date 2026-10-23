@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Calculadora de Rateio de Água - Condomínio</title>
+  
+  <!-- Google Fonts: Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <!-- Font Awesome / CDN Ícones -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+
+  <!-- Chart.js para gráficos -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- Cabeçalho Principal -->
+  <header class="main-header no-print">
+    <div class="header-container">
+      <div class="logo-area">
+        <div class="logo-icon">
+          <i class="fa-solid fa-droplet"></i>
+        </div>
+        <div>
+          <h1>Rateio da Conta de Água</h1>
+          <p class="subtitle">Divisão Justa e Transparente para o Condomínio (6 Unidades)</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button id="btn-explica" class="btn-secondary" title="Como funciona o cálculo">
+          <i class="fa-solid fa-circle-question"></i> Como Funciona?
+        </button>
+        <button id="btn-config" class="btn-primary" title="Configurar moradores e pesos">
+          <i class="fa-solid fa-gear"></i> Configurações
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Cabeçalho exclusivo para Impressão / PDF -->
+  <div class="print-header only-print">
+    <div class="print-header-top">
+      <div>
+        <h2>Demonstrativo de Rateio de Água</h2>
+        <p>Condomínio Residencial e Comercial - 6 Apartamentos</p>
+      </div>
+      <div class="print-meta" id="print-meta-info">
+        <!-- Preenchido via JS -->
+      </div>
+    </div>
+  </div>
+
+  <main class="main-content">
+    <!-- Formulário de Entrada da Fatura -->
+    <section class="card form-card no-print">
+      <div class="card-header">
+        <h2><i class="fa-solid fa-receipt"></i> Dados da Fatura do Mês</h2>
+        <span class="badge badge-info">1 Relógio Unificado</span>
+      </div>
+
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="input-mes">
+            <i class="fa-regular fa-calendar"></i> Mês / Ano de Referência
+          </label>
+          <input type="text" id="input-mes" placeholder="Ex: Outubro / 2026" />
+        </div>
+
+        <div class="form-group">
+          <label for="input-valor">
+            <i class="fa-solid fa-brazilian-real-sign"></i> Valor Total da Conta (R$) *
+          </label>
+          <input type="number" id="input-valor" placeholder="Ex: 850,00" step="0.01" min="0" required />
+        </div>
+
+        <div class="form-group">
+          <label for="input-volume">
+            <i class="fa-solid fa-chart-line"></i> Consumo Total (m³) <small class="text-muted">(opcional)</small>
+          </label>
+          <input type="number" id="input-volume" placeholder="Ex: 45" step="1" min="0" />
+        </div>
+
+        <div class="form-group">
+          <label for="input-vencimento">
+            <i class="fa-regular fa-clock"></i> Data de Vencimento <small class="text-muted">(opcional)</small>
+          </label>
+          <input type="date" id="input-vencimento" />
+        </div>
+      </div>
+
+      <div class="form-footer">
+        <div class="taxa-status">
+          <i class="fa-solid fa-sliders"></i>
+          <span>Parcela de Área Comum: <strong id="lbl-taxa-comum">0% (R$ 0,00)</strong></span>
+          <button type="button" class="btn-link" id="btn-alterar-taxa">Alterar nas Configurações</button>
+        </div>
+        <button id="btn-calcular" class="btn-success">
+          <i class="fa-solid fa-calculator"></i> Atualizar Rateio
+        </button>
+      </div>
+    </section>
+
+    <!-- Cards de Resumo Geral -->
+    <section class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon icon-blue">
+          <i class="fa-solid fa-file-invoice-dollar"></i>
+        </div>
+        <div class="stat-data">
+          <span class="stat-label">Valor da Fatura</span>
+          <span class="stat-value" id="resumo-total">R$ 0,00</span>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon icon-cyan">
+          <i class="fa-solid fa-users"></i>
+        </div>
+        <div class="stat-data">
+          <span class="stat-label">Soma dos Pesos (Pontos)</span>
+          <span class="stat-value" id="resumo-pesos">17,5 pts</span>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon icon-green">
+          <i class="fa-solid fa-scale-balanced"></i>
+        </div>
+        <div class="stat-data">
+          <span class="stat-label">Custo por Ponto</span>
+          <span class="stat-value" id="resumo-custo-ponto">R$ 0,00</span>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon icon-purple">
+          <i class="fa-solid fa-building-user"></i>
+        </div>
+        <div class="stat-data">
+          <span class="stat-label">Parcela Comum / Ap</span>
+          <span class="stat-value" id="resumo-comum-ap">R$ 0,00</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tabela de Resultados por Apartamento -->
+    <section class="card table-card">
+      <div class="card-header flex-between">
+        <div>
+          <h2><i class="fa-solid fa-list-check"></i> Divisão por Apartamento</h2>
+          <p class="card-subtitle">Cálculo proporcional baseado nos pesos de consumo e área comum</p>
+        </div>
+        <div class="card-actions no-print">
+          <button id="btn-copiar-whatsapp" class="btn-action btn-whatsapp">
+            <i class="fa-brands fa-whatsapp"></i> Copiar p/ WhatsApp
+          </button>
+          <button id="btn-imprimir" class="btn-action btn-outline">
+            <i class="fa-solid fa-print"></i> Imprimir / PDF
+          </button>
+          <button id="btn-compartilhar-link" class="btn-action btn-outline" title="Copia link com os dados preenchidos">
+            <i class="fa-solid fa-share-nodes"></i> Compartilhar Link
+          </button>
+        </div>
+      </div>
+
+      <!-- Tabela em Desktop -->
+      <div class="table-responsive">
+        <table class="data-table" id="tabela-rateio">
+          <thead>
+            <tr>
+              <th>Unidade</th>
+              <th>Andar</th>
+              <th>Perfil / Atividade</th>
+              <th class="text-center">Peso / Ocupação</th>
+              <th class="text-right">Taxa Comum</th>
+              <th class="text-right">Consumo</th>
+              <th class="text-right">Total a Pagar</th>
+              <th class="text-center">% da Conta</th>
+              <th class="text-center">Consumo Estimado</th>
+            </tr>
+          </thead>
+          <tbody id="tabela-corpo">
+            <!-- Linhas geradas via JavaScript -->
+          </tbody>
+          <tfoot>
+            <tr class="tfoot-total">
+              <td colspan="3"><strong>TOTAL CONFERIDO</strong></td>
+              <td class="text-center" id="tfoot-peso-total"><strong>17,5</strong></td>
+              <td class="text-right" id="tfoot-comum-total"><strong>R$ 0,00</strong></td>
+              <td class="text-right" id="tfoot-consumo-total"><strong>R$ 0,00</strong></td>
+              <td class="text-right" id="tfoot-geral-total"><strong>R$ 0,00</strong></td>
+              <td class="text-center"><strong>100%</strong></td>
+              <td class="text-center" id="tfoot-volume-total"><strong>-</strong></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+
+      <!-- Cards mobile (renderizados pelo JS em telas pequenas) -->
+      <div class="mobile-cards-container" id="mobile-cards">
+        <!-- Preenchido via JS -->
+      </div>
+    </section>
+
+    <!-- Gráficos e Distribuição Visual -->
+    <div class="analytics-grid no-print">
+      <div class="card">
+        <div class="card-header">
+          <h3><i class="fa-solid fa-chart-pie"></i> Participação na Fatura (%)</h3>
+        </div>
+        <div class="chart-wrapper">
+          <canvas id="chart-pizza"></canvas>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h3><i class="fa-solid fa-chart-column"></i> Valor a Pagar por Unidade (R$)</h3>
+        </div>
+        <div class="chart-wrapper">
+          <canvas id="chart-barras"></canvas>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Rodapé -->
+  <footer class="main-footer no-print">
+    <div class="footer-container">
+      <p>Calculadora de Rateio de Água &copy; 2026 &bull; Desenvolvido para transparência e harmonia condominial.</p>
+      <p class="text-muted"><small>Qualquer morador pode consultar os cálculos a qualquer momento.</small></p>
+    </div>
+  </footer>
+
+  <!-- MODAL: Configurações do Condomínio -->
+  <div class="modal-backdrop" id="modal-config">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-sliders"></i> Configurações do Condomínio</h3>
+        <button class="modal-close" id="btn-close-config">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <!-- Parcela Comum -->
+        <div class="config-section">
+          <h4>1. Parcela de Área Comum / Taxa Fixa</h4>
+          <p class="config-desc">
+            Define a porcentagem da conta que é dividida <strong>igualmente por 6</strong> (cobrindo limpeza de escada, calçada e taxa mínima do hidrômetro). O restante é rateado proporcionalmente pelo consumo dos pesos.
+          </p>
+          <div class="range-container">
+            <input type="range" id="cfg-taxa-comum" min="0" max="40" step="1" value="0" />
+            <div class="range-val">
+              <span id="cfg-taxa-comum-val">0</span>%
+            </div>
+          </div>
+          <small class="text-muted">Atualmente configurado em <strong>0%</strong> por solicitação dos moradores.</small>
+        </div>
+
+        <!-- Tabela de Edição dos Apartamentos -->
+        <div class="config-section">
+          <h4>2. Ocupantes e Pesos por Apartamento</h4>
+          <p class="config-desc">
+            Altere o número de moradores ou o peso das atividades comerciais conforme necessário:
+          </p>
+          
+          <div class="table-responsive">
+            <table class="config-table">
+              <thead>
+                <tr>
+                  <th>Apartamento</th>
+                  <th>Andar</th>
+                  <th>Perfil</th>
+                  <th>Descrição / Ocupação</th>
+                  <th>Peso (Pontos)</th>
+                </tr>
+              </thead>
+              <tbody id="config-tabela-corpo">
+                <!-- Linhas geradas dinamicamente via JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn-outline" id="btn-reset-config">
+          <i class="fa-solid fa-rotate-left"></i> Restaurar Padrões
+        </button>
+        <button type="button" class="btn-primary" id="btn-salvar-config">
+          <i class="fa-solid fa-check"></i> Salvar Alterações
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Como Funciona o Cálculo -->
+  <div class="modal-backdrop" id="modal-explica">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-circle-question"></i> Como o Rateio é Calculado?</h3>
+        <button class="modal-close" id="btn-close-explica">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="explica-content">
+          <h4>Por que essa divisão é a mais justa?</h4>
+          <p>
+            Em prédios com <strong>apenas 1 hidrômetro unificado</strong> onde coexistem moradores residenciais e atividades comerciais, dividir a conta puramente em 6 partes iguais geraria uma grande injustiça para quem mora sozinho (Ap 1). Por outro lado, dividir puramente por pessoas físicas ignoraria o alto consumo de água de um salão de cabeleireiro e de um laboratório protético.
+          </p>
+
+          <div class="explica-cards">
+            <div class="explica-card">
+              <h5><i class="fa-solid fa-house-user"></i> Residências (1 Ponto por Adulto)</h5>
+              <p>
+                O consumo em residências varia com o número de moradores (banhos, descargas, cozinha e máquina de lavar). Cada adulto residente conta como <strong>1,0 ponto</strong>.
+              </p>
+            </div>
+
+            <div class="explica-card">
+              <h5><i class="fa-solid fa-scissors"></i> Salão de Cabeleireiro (Peso 4,0)</h5>
+              <p>
+                Possui uso intensivo com múltiplos lavatórios de cabelo diários (10 a 25 litros por lavagem), esterilização, sanitário de clientes, limpeza frequente e toalhas.
+              </p>
+            </div>
+
+            <div class="explica-card">
+              <h5><i class="fa-solid fa-tooth"></i> Dentista Protético (Peso 2,5)</h5>
+              <p>
+                Trabalho técnico com água contínua em bancada para resfriamento de motores, recorte de gesso, polimento, pia técnica e autoclave.
+              </p>
+            </div>
+          </div>
+
+          <h4>Fórmula Matemática Aplicada</h4>
+          <div class="formula-box">
+            <p><strong>1. Parcela de Área Comum:</strong> <code>(Valor da Conta × % Comum) ÷ 6 apartamentos</code></p>
+            <p><strong>2. Parcela de Consumo:</strong> <code>Valor Restante ÷ Soma de Todos os Pesos</code></p>
+            <p><strong>3. Valor Final de Cada Ap:</strong> <code>Parcela Comum + (Peso do Ap × Valor por Ponto)</code></p>
+          </div>
+
+          <p class="text-muted"><small>
+            * Observação: O sistema possui um algoritmo de conferência de centavos, garantindo que a soma exata de todos os boletos bata centavo por centavo com o valor da fatura emitida pela concessionária.
+          </small></p>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn-primary" id="btn-ok-explica">Entendido</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast de Notificação -->
+  <div class="toast" id="toast-msg">Mensagem</div>
+
+  <script src="app.js"></script>
+</body>
+</html>
