@@ -54,21 +54,13 @@ O prédio possui **6 apartamentos (2 por andar)** com a seguinte distribuição 
 
 ---
 
-## 🚀 Como Hospedar no GitHub Pages
+## 🚀 Acesso Online (GitHub Pages)
 
-1. Crie um novo repositório no seu GitHub (ex: `calculadora-agua-predio`).
-2. Faça o push dos arquivos para o repositório:
-   ```bash
-   git init
-   git add .
-   git commit -m "feat: calculadora de rateio de agua do condominio"
-   git branch -M main
-   git remote add origin https://github.com/SEU_USUARIO/calculadora-agua-predio.git
-   git push -u origin main
-   ```
-3. No GitHub:
-   - Acesse **Settings** > **Pages**
-   - Em **Branch**, selecione `main` e pasta `/ (root)`
-   - Clique em **Save**
-4. O link público ficará disponível em:
-   `https://SEU_USUARIO.github.io/calculadora-agua-predio/`
+A aplicação está disponível publicamente para qualquer morador acessar:
+👉 **[https://israelddiacov.github.io/calculadora_agua_predial/](https://israelddiacov.github.io/calculadora_agua_predial/)**
+
+### Como foi ativado no GitHub:
+1. No repositório: [github.com/israelddiacov/calculadora_agua_predial](https://github.com/israelddiacov/calculadora_agua_predial)
+2. Acesse **Settings** > **Pages**
+3. Em **Branch**, selecione `main` e a pasta `/ (root)`
+4. Clique em **Save**
