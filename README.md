@@ -7,7 +7,7 @@ Aplicação web pública, interativa e de fácil acesso para calcular a **divis�
 ## 🚀 Acesso Online (GitHub Pages)
 
 A aplicação está disponível publicamente para qualquer morador ou síndico acessar pelo celular ou computador:  
-👉 **[https://israelddiacov.github.io/calculadora_agua_predial/](https://israelddiacov.github.io/calculadora_agua_predial/)**
+👉 **[https://israelddiacov.github.io/calculadora-rateio-condominial/](https://israelddiacov.github.io/calculadora-rateio-condominial/)**
 
 ---
 
