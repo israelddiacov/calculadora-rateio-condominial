@@ -3,14 +3,14 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Calculadora de Rateio de Água - Condomínio</title>
+  <title>Calculadora de Rateio Condominial - Divisão Justa de Despesas</title>
   
   <!-- Google Fonts: Plus Jakarta Sans -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 
-  <!-- Font Awesome / CDN Ícones -->
+  <!-- Font Awesome Ícones -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
 
   <!-- Chart.js para gráficos -->
@@ -23,31 +23,31 @@
   <header class="main-header no-print">
     <div class="header-container">
       <div class="logo-area">
-        <div class="logo-icon">
-          <i class="fa-solid fa-droplet"></i>
+        <div class="logo-icon" id="header-logo-icon">
+          <i class="fa-solid fa-calculator"></i>
         </div>
         <div>
-          <h1>Rateio da Conta de Água</h1>
-          <p class="subtitle">Divisão Justa e Transparente para o Condomínio (6 Unidades)</p>
+          <h1 id="header-title">Rateio Condominial Justo</h1>
+          <p class="subtitle" id="header-subtitle">Divisão proporcional e transparente de despesas compartilhadas</p>
         </div>
       </div>
       <div class="header-actions">
-        <button id="btn-explica" class="btn-secondary" title="Como funciona o cálculo">
+        <button id="btn-explica" class="btn-secondary tooltip-btn" data-tooltip="Entenda como funciona a fórmula de divisão justa por pesos e parcelas">
           <i class="fa-solid fa-circle-question"></i> Como Funciona?
         </button>
-        <button id="btn-config" class="btn-primary" title="Configurar moradores e pesos">
-          <i class="fa-solid fa-gear"></i> Configurações
+        <button id="btn-config" class="btn-primary tooltip-btn" data-tooltip="Adicione, remova e configure unidades, moradores, comércios e pesos">
+          <i class="fa-solid fa-gear"></i> Configurar Unidades
         </button>
       </div>
     </div>
   </header>
 
-  <!-- Cabeçalho exclusivo para Impressão / PDF -->
+  <!-- Cabeçalho para Impressão / PDF -->
   <div class="print-header only-print">
     <div class="print-header-top">
       <div>
-        <h2>Demonstrativo de Rateio de Água</h2>
-        <p>Condomínio Residencial e Comercial - 6 Apartamentos</p>
+        <h2 id="print-title">Demonstrativo de Rateio de Despesa</h2>
+        <p id="print-subtitle">Condomínio Residencial e Comercial</p>
       </div>
       <div class="print-meta" id="print-meta-info">
         <!-- Preenchido via JS -->
@@ -56,50 +56,89 @@
   </div>
 
   <main class="main-content">
-    <!-- Formulário de Entrada da Fatura -->
+    <!-- Seleção do Tipo de Despesa e Dados da Fatura -->
     <section class="card form-card no-print">
       <div class="card-header">
-        <h2><i class="fa-solid fa-receipt"></i> Dados da Fatura do Mês</h2>
-        <span class="badge badge-info">1 Relógio Unificado</span>
+        <div class="flex-between">
+          <h2><i class="fa-solid fa-receipt"></i> Dados da Despesa Compartilhada</h2>
+          <span class="badge badge-info" id="badge-tipo-despesa">Rateio Ponderado</span>
+        </div>
       </div>
 
-      <div class="form-grid">
+      <!-- Barra de Seleção de Tipo de Despesa -->
+      <div class="tipo-despesa-container">
+        <label class="section-label">
+          <i class="fa-solid fa-tags"></i> Qual despesa você deseja dividir?
+        </label>
+        <div class="tipo-despesa-chips" id="chips-tipo-despesa">
+          <button type="button" class="chip active tooltip-btn" data-tipo="agua" data-tooltip="Conta de água e esgoto do hidrômetro unificado">
+            <i class="fa-solid fa-droplet"></i> Água e Esgoto
+          </button>
+          <button type="button" class="chip tooltip-btn" data-tipo="gas" data-tooltip="Gás encanado / botijão central compartilhado">
+            <i class="fa-solid fa-fire-flame-simple"></i> Gás Central
+          </button>
+          <button type="button" class="chip tooltip-btn" data-tipo="energia" data-tooltip="Conta de luz compartilhada ou das áreas comuns">
+            <i class="fa-solid fa-bolt"></i> Energia Elétrica
+          </button>
+          <button type="button" class="chip tooltip-btn" data-tipo="limpeza" data-tooltip="Produtos de faxina, diarista ou limpeza predial">
+            <i class="fa-solid fa-broom"></i> Limpeza e Faxina
+          </button>
+          <button type="button" class="chip tooltip-btn" data-tipo="manutencao" data-tooltip="Reformas, conserto de portão, interfone ou pintura">
+            <i class="fa-solid fa-wrench"></i> Manutenção e Obras
+          </button>
+          <button type="button" class="chip tooltip-btn" data-tipo="outro" data-tooltip="Outra despesa personalizada com o nome que você quiser">
+            <i class="fa-solid fa-pen-to-square"></i> Outra Despesa
+          </button>
+        </div>
+
+        <!-- Campo para nome personalizado se escolher 'outro' -->
+        <div class="form-group campo-custom-despesa" id="box-custom-despesa" style="display: none; margin-top: 0.75rem;">
+          <label for="input-custom-nome">
+            <i class="fa-solid fa-pen"></i> Nome da Despesa Personalizada:
+          </label>
+          <input type="text" id="input-custom-nome" placeholder="Ex: Conserto do Portão Eletrônico, Internet do Prédio..." class="tooltip-input" data-tooltip="Digite o título da despesa como quer que apareça no relatório e no WhatsApp" />
+        </div>
+      </div>
+
+      <!-- Grid de Campos da Fatura -->
+      <div class="form-grid" style="margin-top: 1.25rem;">
         <div class="form-group">
           <label for="input-mes">
             <i class="fa-regular fa-calendar"></i> Mês / Ano de Referência
           </label>
-          <input type="text" id="input-mes" placeholder="Ex: Outubro / 2026" />
+          <input type="text" id="input-mes" placeholder="Ex: Outubro / 2026" class="tooltip-input" data-tooltip="Informe o mês e o ano a que esta despesa se refere" />
         </div>
 
         <div class="form-group">
           <label for="input-valor">
-            <i class="fa-solid fa-brazilian-real-sign"></i> Valor Total da Conta (R$) *
+            <i class="fa-solid fa-brazilian-real-sign"></i> Valor Total da Fatura (R$) *
           </label>
-          <input type="number" id="input-valor" placeholder="Ex: 850,00" step="0.01" min="0" required />
+          <input type="number" id="input-valor" placeholder="Ex: 600,00" step="0.01" min="0" required class="tooltip-input" data-tooltip="Digite o valor financeiro total da conta a ser rateada" />
         </div>
 
-        <div class="form-group">
-          <label for="input-volume">
-            <i class="fa-solid fa-chart-line"></i> Consumo Total (m³) <small class="text-muted">(opcional)</small>
+        <div class="form-group" id="box-campo-volume">
+          <label for="input-volume" id="lbl-volume">
+            <i class="fa-solid fa-chart-line"></i> <span id="txt-label-volume">Consumo Total (m³)</span> <small class="text-muted">(opcional)</small>
           </label>
-          <input type="number" id="input-volume" placeholder="Ex: 45" step="1" min="0" />
+          <input type="number" id="input-volume" placeholder="Ex: 40" step="0.1" min="0" class="tooltip-input" data-tooltip="Volume ou consumo físico medido na conta (m³, kWh, etc.). Se não houver, deixe em branco" />
         </div>
 
         <div class="form-group">
           <label for="input-vencimento">
             <i class="fa-regular fa-clock"></i> Data de Vencimento <small class="text-muted">(opcional)</small>
           </label>
-          <input type="date" id="input-vencimento" />
+          <input type="date" id="input-vencimento" class="tooltip-input" data-tooltip="Data limite de pagamento para constar na mensagem do WhatsApp e no relatório" />
         </div>
       </div>
 
+      <!-- Rodapé do Formulário -->
       <div class="form-footer">
-        <div class="taxa-status">
+        <div class="taxa-status tooltip-box" data-tooltip="Parcela da conta dividida igualmente entre todos (ex: tarifa mínima, cota básica de rede ou conservação)">
           <i class="fa-solid fa-sliders"></i>
-          <span>Parcela de Área Comum: <strong id="lbl-taxa-comum">0% (R$ 0,00)</strong></span>
-          <button type="button" class="btn-link" id="btn-alterar-taxa">Alterar nas Configurações</button>
+          <span>Parcela Fixa / Taxa Mínima: <strong id="lbl-taxa-comum">0% (R$ 0,00)</strong></span>
+          <button type="button" class="btn-link tooltip-btn" id="btn-alterar-taxa" data-tooltip="Clique para alterar a porcentagem da cota fixa compartilhada">Alterar</button>
         </div>
-        <button id="btn-calcular" class="btn-success">
+        <button id="btn-calcular" class="btn-success tooltip-btn" data-tooltip="Recalcular a divisão de todas as unidades instantaneamente">
           <i class="fa-solid fa-calculator"></i> Atualizar Rateio
         </button>
       </div>
@@ -107,27 +146,27 @@
 
     <!-- Cards de Resumo Geral -->
     <section class="stats-grid">
-      <div class="stat-card">
+      <div class="stat-card tooltip-box" data-tooltip="Valor total bruto da fatura que está sendo rateado">
         <div class="stat-icon icon-blue">
-          <i class="fa-solid fa-file-invoice-dollar"></i>
+          <i class="fa-solid fa-file-invoice-dollar" id="stat-icon-tipo"></i>
         </div>
         <div class="stat-data">
-          <span class="stat-label">Valor da Fatura</span>
+          <span class="stat-label">Valor Total</span>
           <span class="stat-value" id="resumo-total">R$ 0,00</span>
         </div>
       </div>
 
-      <div class="stat-card">
+      <div class="stat-card tooltip-box" data-tooltip="Soma dos pontos e pesos de todos os moradores e atividades cadastradas">
         <div class="stat-icon icon-cyan">
           <i class="fa-solid fa-users"></i>
         </div>
         <div class="stat-data">
-          <span class="stat-label">Soma dos Pesos (Pontos)</span>
-          <span class="stat-value" id="resumo-pesos">17,5 pts</span>
+          <span class="stat-label">Soma dos Pesos</span>
+          <span class="stat-value" id="resumo-pesos">8,0 pts</span>
         </div>
       </div>
 
-      <div class="stat-card">
+      <div class="stat-card tooltip-box" data-tooltip="Quanto custa cada ponto/peso na parcela de consumo desta fatura">
         <div class="stat-icon icon-green">
           <i class="fa-solid fa-scale-balanced"></i>
         </div>
@@ -137,51 +176,51 @@
         </div>
       </div>
 
-      <div class="stat-card">
+      <div class="stat-card tooltip-box" data-tooltip="Valor fixo que cada unidade paga igualmente (caso a taxa mínima seja ativada)">
         <div class="stat-icon icon-purple">
           <i class="fa-solid fa-building-user"></i>
         </div>
         <div class="stat-data">
-          <span class="stat-label">Parcela Comum / Ap</span>
+          <span class="stat-label">Parcela Fixa / Unidade</span>
           <span class="stat-value" id="resumo-comum-ap">R$ 0,00</span>
         </div>
       </div>
     </section>
 
-    <!-- Tabela de Resultados por Apartamento -->
+    <!-- Tabela de Resultados por Unidade -->
     <section class="card table-card">
       <div class="card-header flex-between">
         <div>
-          <h2><i class="fa-solid fa-list-check"></i> Divisão por Apartamento</h2>
-          <p class="card-subtitle">Cálculo proporcional baseado nos pesos de consumo e área comum</p>
+          <h2><i class="fa-solid fa-list-check"></i> Divisão por Unidade</h2>
+          <p class="card-subtitle">Cálculo proporcional baseado nos pesos de ocupação e parcelas fixas</p>
         </div>
         <div class="card-actions no-print">
-          <button id="btn-copiar-whatsapp" class="btn-action btn-whatsapp">
+          <button id="btn-copiar-whatsapp" class="btn-action btn-whatsapp tooltip-btn" data-tooltip="Gera e copia uma mensagem formatada com emojis para colar no grupo do WhatsApp">
             <i class="fa-brands fa-whatsapp"></i> Copiar p/ WhatsApp
           </button>
-          <button id="btn-imprimir" class="btn-action btn-outline">
+          <button id="btn-imprimir" class="btn-action btn-outline tooltip-btn" data-tooltip="Gera demonstrativo formal em folha A4 limpa para imprimir ou salvar em PDF">
             <i class="fa-solid fa-print"></i> Imprimir / PDF
           </button>
-          <button id="btn-compartilhar-link" class="btn-action btn-outline" title="Copia link com os dados preenchidos">
+          <button id="btn-compartilhar-link" class="btn-action btn-outline tooltip-btn" data-tooltip="Copia o link com estes valores preenchidos para abrir no celular de qualquer morador">
             <i class="fa-solid fa-share-nodes"></i> Compartilhar Link
           </button>
         </div>
       </div>
 
-      <!-- Tabela em Desktop -->
+      <!-- Tabela em Telas Maiores -->
       <div class="table-responsive">
         <table class="data-table" id="tabela-rateio">
           <thead>
             <tr>
-              <th>Unidade</th>
-              <th>Andar</th>
-              <th>Perfil / Atividade</th>
-              <th class="text-center">Peso / Ocupação</th>
-              <th class="text-right">Taxa Comum</th>
-              <th class="text-right">Consumo</th>
-              <th class="text-right">Total a Pagar</th>
-              <th class="text-center">% da Conta</th>
-              <th class="text-center">Consumo Estimado</th>
+              <th class="tooltip-th" data-tooltip="Identificação do apartamento, casa ou sala">Unidade</th>
+              <th class="tooltip-th" data-tooltip="Localização ou setor no condomínio">Local / Andar</th>
+              <th class="tooltip-th" data-tooltip="Classificação residencial ou comercial da unidade">Perfil / Atividade</th>
+              <th class="text-center tooltip-th" data-tooltip="Peso proporcional de consumo (pontos)">Peso (Pontos)</th>
+              <th class="text-right tooltip-th" data-tooltip="Valor referente à cota mínima / taxa fixa compartilhada">Parcela Fixa</th>
+              <th class="text-right tooltip-th" data-tooltip="Valor do consumo medido pelos pesos">Consumo</th>
+              <th class="text-right tooltip-th" data-tooltip="Valor final exato que esta unidade deve pagar">Total a Pagar</th>
+              <th class="text-center tooltip-th" data-tooltip="Porcentagem desta unidade sobre o total da fatura">% da Conta</th>
+              <th class="text-center tooltip-th" id="th-consumo-estimado" data-tooltip="Estimativa física do consumo desta unidade">Consumo Est.</th>
             </tr>
           </thead>
           <tbody id="tabela-corpo">
@@ -190,7 +229,7 @@
           <tfoot>
             <tr class="tfoot-total">
               <td colspan="3"><strong>TOTAL CONFERIDO</strong></td>
-              <td class="text-center" id="tfoot-peso-total"><strong>17,5</strong></td>
+              <td class="text-center" id="tfoot-peso-total"><strong>8,0</strong></td>
               <td class="text-right" id="tfoot-comum-total"><strong>R$ 0,00</strong></td>
               <td class="text-right" id="tfoot-consumo-total"><strong>R$ 0,00</strong></td>
               <td class="text-right" id="tfoot-geral-total"><strong>R$ 0,00</strong></td>
@@ -201,7 +240,7 @@
         </table>
       </div>
 
-      <!-- Cards mobile (renderizados pelo JS em telas pequenas) -->
+      <!-- Cards Mobile (renderizados pelo JS em telas pequenas) -->
       <div class="mobile-cards-container" id="mobile-cards">
         <!-- Preenchido via JS -->
       </div>
@@ -232,51 +271,59 @@
   <!-- Rodapé -->
   <footer class="main-footer no-print">
     <div class="footer-container">
-      <p>Calculadora de Rateio de Água &copy; 2026 &bull; Desenvolvido para transparência e harmonia condominial.</p>
-      <p class="text-muted"><small>Qualquer morador pode consultar os cálculos a qualquer momento.</small></p>
+      <p>Calculadora Universal de Rateio Condominial &copy; 2026 &bull; Transparência e precisão em contas compartilhadas.</p>
+      <p class="text-muted"><small>Aplicativo web aberto &bull; Todos os cálculos são executados com conferência contábil de centavos.</small></p>
     </div>
   </footer>
 
-  <!-- MODAL: Configurações do Condomínio -->
+  <!-- MODAL: Configurações do Condomínio e Unidades -->
   <div class="modal-backdrop" id="modal-config">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-lg">
       <div class="modal-header">
-        <h3><i class="fa-solid fa-sliders"></i> Configurações do Condomínio</h3>
-        <button class="modal-close" id="btn-close-config">&times;</button>
+        <h3><i class="fa-solid fa-sliders"></i> Configuração de Unidades e Pesos</h3>
+        <button class="modal-close tooltip-btn" id="btn-close-config" data-tooltip="Fechar configurações">&times;</button>
       </div>
 
       <div class="modal-body">
-        <!-- Parcela Comum -->
+        <!-- Parcela Comum / Taxa Mínima -->
         <div class="config-section">
-          <h4>1. Parcela de Área Comum / Taxa Fixa</h4>
+          <h4>1. Parcela Fixa / Taxa Mínima da Concessionária</h4>
           <p class="config-desc">
-            Define a porcentagem da conta que é dividida <strong>igualmente por 6</strong> (cobrindo limpeza de escada, calçada e taxa mínima do hidrômetro). O restante é rateado proporcionalmente pelo consumo dos pesos.
+            Define a porcentagem da fatura que é dividida <strong>em partes rigorosamente iguais entre todas as unidades</strong> (cobrindo tarifas de disponibilidade de rede, taxa mínima ou custos básicos). O saldo restante é rateado proporcionalmente pelos pesos.
           </p>
           <div class="range-container">
-            <input type="range" id="cfg-taxa-comum" min="0" max="40" step="1" value="0" />
+            <input type="range" id="cfg-taxa-comum" min="0" max="50" step="1" value="0" class="tooltip-input" data-tooltip="Arraste para ajustar a porcentagem da cota fixa (0% a 50%)" />
             <div class="range-val">
               <span id="cfg-taxa-comum-val">0</span>%
             </div>
           </div>
-          <small class="text-muted">Atualmente configurado em <strong>0%</strong> por solicitação dos moradores.</small>
+          <small class="text-muted">Deixe em <strong>0%</strong> caso prefira que o valor total seja rateado puramente pelos pesos e ocupação.</small>
         </div>
 
-        <!-- Tabela de Edição dos Apartamentos -->
+        <!-- Tabela Dinâmica de Unidades -->
         <div class="config-section">
-          <h4>2. Ocupantes e Pesos por Apartamento</h4>
-          <p class="config-desc">
-            Altere o número de moradores ou o peso das atividades comerciais conforme necessário:
-          </p>
+          <div class="flex-between" style="margin-bottom: 0.5rem;">
+            <div>
+              <h4>2. Unidades, Moradores e Atividades</h4>
+              <p class="config-desc" style="margin-bottom: 0;">
+                Adicione, remova ou edite quantas unidades o imóvel possuir:
+              </p>
+            </div>
+            <button type="button" class="btn-success btn-action tooltip-btn" id="btn-add-unidade" data-tooltip="Adicionar um novo apartamento, casa ou sala ao condomínio">
+              <i class="fa-solid fa-plus"></i> Adicionar Unidade
+            </button>
+          </div>
           
           <div class="table-responsive">
             <table class="config-table">
               <thead>
                 <tr>
-                  <th>Apartamento</th>
-                  <th>Andar</th>
-                  <th>Perfil</th>
-                  <th>Descrição / Ocupação</th>
-                  <th>Peso (Pontos)</th>
+                  <th class="tooltip-th" data-tooltip="Nome ou número da unidade">Identificação</th>
+                  <th class="tooltip-th" data-tooltip="Andar, bloco ou setor">Local / Andar</th>
+                  <th class="tooltip-th" data-tooltip="Classificação residencial, comercial ou outra">Tipo</th>
+                  <th class="tooltip-th" data-tooltip="Número de pessoas ou descrição da atividade">Ocupação / Descrição</th>
+                  <th class="text-center tooltip-th" data-tooltip="Pontos de peso de consumo (ex: 1 ponto por residente, ou peso comercial)">Peso (Pontos)</th>
+                  <th class="text-center tooltip-th" data-tooltip="Excluir esta unidade do cálculo">Ações</th>
                 </tr>
               </thead>
               <tbody id="config-tabela-corpo">
@@ -288,11 +335,11 @@
       </div>
 
       <div class="modal-footer">
-        <button type="button" class="btn-outline" id="btn-reset-config">
-          <i class="fa-solid fa-rotate-left"></i> Restaurar Padrões
+        <button type="button" class="btn-outline tooltip-btn" id="btn-reset-config" data-tooltip="Restaurar a lista de unidades para o modelo didático inicial">
+          <i class="fa-solid fa-rotate-left"></i> Restaurar Exemplo Padrão
         </button>
-        <button type="button" class="btn-primary" id="btn-salvar-config">
-          <i class="fa-solid fa-check"></i> Salvar Alterações
+        <button type="button" class="btn-primary tooltip-btn" id="btn-salvar-config" data-tooltip="Salvar as unidades no navegador e recalcular">
+          <i class="fa-solid fa-check"></i> Salvar e Aplicar
         </button>
       </div>
     </div>
@@ -302,50 +349,46 @@
   <div class="modal-backdrop" id="modal-explica">
     <div class="modal-dialog modal-lg">
       <div class="modal-header">
-        <h3><i class="fa-solid fa-circle-question"></i> Como o Rateio é Calculado?</h3>
-        <button class="modal-close" id="btn-close-explica">&times;</button>
+        <h3><i class="fa-solid fa-circle-question"></i> Como a Divisão Justa Funciona?</h3>
+        <button class="modal-close tooltip-btn" id="btn-close-explica" data-tooltip="Fechar janela">&times;</button>
       </div>
 
       <div class="modal-body">
         <div class="explica-content">
-          <h4>Por que essa divisão é a mais justa?</h4>
+          <h4>Por que o método ponderado é a melhor solução?</h4>
           <p>
-            Em prédios com <strong>apenas 1 hidrômetro unificado</strong> onde coexistem moradores residenciais e atividades comerciais, dividir a conta puramente em 6 partes iguais geraria uma grande injustiça para quem mora sozinho (Ap 1). Por outro lado, dividir puramente por pessoas físicas ignoraria o alto consumo de água de um salão de cabeleireiro e de um laboratório protético.
+            Em condomínios e prédios com <strong>medidor único (não individualizado)</strong>, dividir as despesas de forma linear (apenas dividindo pelo número de apartamentos) é injusto com quem mora sozinho ou possui famílias menores. Da mesma forma, ignorar que comércios ou atividades especiais demandam mais recursos sobrecarrega os moradores comuns.
           </p>
 
           <div class="explica-cards">
             <div class="explica-card">
-              <h5><i class="fa-solid fa-house-user"></i> Residências (1 Ponto por Adulto)</h5>
+              <h5><i class="fa-solid fa-house-user"></i> Unidades Residenciais</h5>
               <p>
-                O consumo em residências varia com o número de moradores (banhos, descargas, cozinha e máquina de lavar). Cada adulto residente conta como <strong>1,0 ponto</strong>.
+                O consumo em residências varia de forma diretamente proporcional ao número de residentes. O padrão é adotar <strong>1,0 ponto por habitante</strong>.
               </p>
             </div>
 
             <div class="explica-card">
-              <h5><i class="fa-solid fa-scissors"></i> Salão de Cabeleireiro (Peso 4,0)</h5>
+              <h5><i class="fa-solid fa-shop"></i> Unidades Comerciais / Diferenciadas</h5>
               <p>
-                Possui uso intensivo com múltiplos lavatórios de cabelo diários (10 a 25 litros por lavagem), esterilização, sanitário de clientes, limpeza frequente e toalhas.
+                Locais comerciais com alto fluxo de clientes, máquinas ou uso contínuo de recursos recebem um <strong>peso equivalente</strong> condizente com a sua intensidade de atividade.
               </p>
             </div>
 
             <div class="explica-card">
-              <h5><i class="fa-solid fa-tooth"></i> Dentista Protético (Peso 2,5)</h5>
+              <h5><i class="fa-solid fa-coins"></i> Precisão de Centavos</h5>
               <p>
-                Trabalho técnico com água contínua em bancada para resfriamento de motores, recorte de gesso, polimento, pia técnica e autoclave.
+                O sistema utiliza o método dos maiores restos (algoritmo financeiro), garantindo que a soma exata dos boletos feche <strong>centavo por centavo</strong> com a fatura da concessionária.
               </p>
             </div>
           </div>
 
           <h4>Fórmula Matemática Aplicada</h4>
           <div class="formula-box">
-            <p><strong>1. Parcela de Área Comum:</strong> <code>(Valor da Conta × % Comum) ÷ 6 apartamentos</code></p>
-            <p><strong>2. Parcela de Consumo:</strong> <code>Valor Restante ÷ Soma de Todos os Pesos</code></p>
-            <p><strong>3. Valor Final de Cada Ap:</strong> <code>Parcela Comum + (Peso do Ap × Valor por Ponto)</code></p>
+            <p><strong>1. Parcela Fixa Mínima (se ativada):</strong> <code>(Valor Total × % Fixa) ÷ Total de Unidades</code></p>
+            <p><strong>2. Parcela Variável:</strong> <code>(Valor Total - Parcela Fixa) ÷ Soma de Todos os Pesos</code></p>
+            <p><strong>3. Total de Cada Unidade:</strong> <code>Parcela Fixa + (Peso da Unidade × Custo por Ponto)</code></p>
           </div>
-
-          <p class="text-muted"><small>
-            * Observação: O sistema possui um algoritmo de conferência de centavos, garantindo que a soma exata de todos os boletos bata centavo por centavo com o valor da fatura emitida pela concessionária.
-          </small></p>
         </div>
       </div>
 
@@ -357,6 +400,9 @@
 
   <!-- Toast de Notificação -->
   <div class="toast" id="toast-msg">Mensagem</div>
+
+  <!-- Balão de Pop-up Dinâmico (Tooltip Flutuante) -->
+  <div class="floating-tooltip" id="floating-tooltip">Dica explicativa</div>
 
   <script src="app.js"></script>
 </body>

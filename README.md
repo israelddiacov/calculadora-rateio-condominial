@@ -1,66 +1,62 @@
-# 💧 Calculadora de Rateio de Água do Condomínio (6 Unidades)
+# 🏢 Calculadora Universal de Rateio Condominial
 
-Aplicação web estática, transparente e de fácil acesso para calcular a divisão justa e proporcional da conta de água unificada (1 hidrômetro para todo o prédio).
-
-Desenvolvido para condomínios com perfil misto (**moradores residenciais e atividades comerciais/prestação de serviços**).
-
----
-
-## 🏢 Layout do Prédio e Premissas Iniciais
-
-O prédio possui **6 apartamentos (2 por andar)** com a seguinte distribuição padrão:
-
-| Apartamento | Andar | Perfil | Ocupação / Atividade | Peso (Pontos) | Justificativa do Peso |
-| :--- | :--- | :--- | :--- | :---: | :--- |
-| **Ap 1** | 1º Andar | Residencial | 1 adulto | **1,0** | 1 habitante padrão (banhos, pia, máquina) |
-| **Ap 2** | 1º Andar | Comercial | Salão de cabeleireiro | **4,0** | Múltiplos lavatórios diários (10-25L cada), clientes, esterilização, toalhas |
-| **Ap 3** | 2º Andar | Residencial | 3 adultos | **3,0** | 3 residentes padrão |
-| **Ap 4** | 2º Andar | Comercial/Técnico | Dentista protético | **2,5** | Uso técnico contínuo em bancada (polimento, recorte de gesso, pias técnicas) |
-| **Ap 5** | 3º Andar | Residencial | 4 adultos | **4,0** | 4 residentes padrão |
-| **Ap 6** | 3º Andar | Residencial | 3 adultos | **3,0** | 3 residentes padrão |
-
-* **Soma inicial dos pesos:** `1,0 + 4,0 + 3,0 + 2,5 + 4,0 + 3,0 = 17,5 pontos`
-* **Parcela de Área Comum:** Configurada inicialmente em **0%**, podendo ser ativada e ajustada a qualquer momento (ex: 10%, 15%, 20%) pelo painel de **Configurações**.
-
----
-
-## 🧮 Metodologia de Cálculo
-
-1. **Parcela de Área Comum (Taxa Fixa / Conservação):**
-   $$\text{Valor Comum Total} = \text{Valor da Fatura} \times \text{Percentual Comum}$$
-   $$\text{Parcela Comum por Apartamento} = \frac{\text{Valor Comum Total}}{6}$$
-
-2. **Parcela de Consumo Variável:**
-   $$\text{Valor do Consumo} = \text{Valor da Fatura} - \text{Valor Comum Total}$$
-   $$\text{Valor por Ponto (R\$/ponto)} = \frac{\text{Valor do Consumo}}{\sum \text{Pesos}}$$
-   $$\text{Consumo do Apartamento} = \text{Peso do Ap} \times \text{Valor por Ponto}$$
-
-3. **Total a Pagar por Unidade:**
-   $$\text{Total} = \text{Parcela Comum} + \text{Consumo Individual}$$
-
-> 💡 **Precisão Contábil:** O sistema implementa o método dos maiores restos (*Largest Remainder Method*), garantindo que a soma dos boletos feche **centavo por centavo** com o valor da fatura da concessionária, sem sobras nem faltas.
-
----
-
-## ✨ Recursos da Aplicação
-
-- **Cálculo em Tempo Real:** Digite o valor da conta e veja o resultado de todos os apartamentos instantaneamente.
-- **Botão "Copiar para WhatsApp":** Gera uma mensagem elegante e explicativa pronta para enviar no grupo de moradores.
-- **Impressão e PDF:** Layout formatado para gerar um relatório de rateio formal pronto para arquivo ou mural.
-- **Gráficos Interativos:** Gráfico de rosca e barras mostrando a proporção de cada unidade.
-- **Compartilhamento por Link:** Codifica os valores preenchidos na URL para qualquer morador abrir e ver os mesmos números.
-- **Painel de Configurações:** Permite alterar moradores, pesos ou taxa de área comum a qualquer momento, salvando automaticamente no navegador (`localStorage`).
-- **Mobile First:** Totalmente adaptado para celulares, tablets e computadores.
+Aplicação web pública, interativa e de fácil acesso para calcular a **divisão justa, transparente e proporcional de despesas compartilhadas** em condomínios, vilas, conjuntos residenciais ou imóveis com perfil misto (residencial e comercial).
 
 ---
 
 ## 🚀 Acesso Online (GitHub Pages)
 
-A aplicação está disponível publicamente para qualquer morador acessar:
+A aplicação está disponível publicamente para qualquer morador ou síndico acessar pelo celular ou computador:  
 👉 **[https://israelddiacov.github.io/calculadora_agua_predial/](https://israelddiacov.github.io/calculadora_agua_predial/)**
 
-### Como foi ativado no GitHub:
-1. No repositório: [github.com/israelddiacov/calculadora_agua_predial](https://github.com/israelddiacov/calculadora_agua_predial)
-2. Acesse **Settings** > **Pages**
-3. Em **Branch**, selecione `main` e a pasta `/ (root)`
-4. Clique em **Save**
+---
+
+## ✨ Recursos da Aplicação
+
+- **Múltiplos Tipos de Despesas:**
+  - 💧 **Água e Esgoto:** Hidrômetro unificado, com acompanhamento de volume em $\text{m}^3$.
+  - 🔥 **Gás Central:** Botijão ou central de GLP compartilhada (acompanhamento em $\text{m}^3$ ou $\text{kg}$).
+  - ⚡ **Energia Elétrica:** Conta compartilhada ou luz de áreas comuns (em $\text{kWh}$).
+  - 🧹 **Limpeza e Faxina:** Produtos, diarista e manutenção predial.
+  - 🛠️ **Manutenção e Obras:** Reformas, conserto de portão, interfone ou pintura.
+  - ✏️ **Despesa Personalizada:** Permite digitar livremente o nome de qualquer rateio.
+- **Divisão Ponderada por Ocupação e Atividade:**
+  - Unidades residenciais recebem peso correspondente ao número de moradores (ex: 1 pessoa = 1.0 pto, 3 pessoas = 3.0 ptos).
+  - Unidades comerciais ou comércios recebem pesos proporcionais à sua demanda de recursos.
+- **Gerenciamento Dinâmico de Unidades:**
+  - Adicione ou remova livremente quantos apartamentos, casas ou salas o condomínio possuir.
+  - Ajuste nomes, andares, descrições e pesos a qualquer momento.
+- **Balões Explicativos (Tooltips):**
+  - Passe o mouse sobre qualquer campo ou botão para ver dicas instantâneas sobre o que preencher e como funciona.
+- **Parcela Fixa Opcional:**
+  - Permite destinar uma fração da conta (ex: 10%, 15% ou 20%) para ser dividida em cotas rigorosamente iguais entre todas as unidades (cobrindo tarifas de disponibilidade da rede ou despesas mínimas), rateando o restante pelos pesos.
+- **Precisão Contábil de Centavos:**
+  - Algoritmo financeiro (*Largest Remainder Method*) que garante que a soma dos boletos individuais feche **centavo por centavo** com a fatura da concessionária.
+- **Comunicação Pronta para WhatsApp:**
+  - Botão com 1 clique para gerar e copiar um relatório formatado com emojis, detalhes e instruções de pagamento.
+- **Relatório Formal A4 (PDF):**
+  - Botão para imprimir ou salvar em PDF em formato limpo para mídias físicas, mural ou prestação de contas.
+
+---
+
+## 🧮 Metodologia de Cálculo
+
+1. **Parcela Fixa Compartilhada (se ativada):**
+   $$\text{Valor Fixo Total} = \text{Valor da Fatura} \times \text{Percentual Fixo}$$
+   $$\text{Cota Fixa por Unidade} = \frac{\text{Valor Fixo Total}}{\text{Total de Unidades}}$$
+
+2. **Parcela Variável (Ponderada):**
+   $$\text{Saldo Variável} = \text{Valor da Fatura} - \text{Valor Fixo Total}$$
+   $$\text{Custo por Ponto} = \frac{\text{Saldo Variável}}{\sum \text{Pesos de Todas as Unidades}}$$
+   $$\text{Consumo Individual} = \text{Peso da Unidade} \times \text{Custo por Ponto}$$
+
+3. **Total a Pagar:**
+   $$\text{Total} = \text{Cota Fixa por Unidade} + \text{Consumo Individual}$$
+
+---
+
+## 🛠️ Tecnologias Utilizadas
+
+- **HTML5 & CSS3 Moderno:** Design responsivo, tipografia com Google Fonts (*Plus Jakarta Sans*), ícones Font Awesome e tooltips flutuantes nativos.
+- **JavaScript Puro (ES6+):** Rápido, sem dependências pesadas, com persistência em `localStorage` e integração com Query Strings na URL.
+- **Chart.js:** Gráficos dinâmicos de rosca e barras para visualização clara das proporções.
