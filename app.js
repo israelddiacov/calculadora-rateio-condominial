@@ -71,7 +71,9 @@ const TIPOS_DESPESA = {
 const CONFIG_PADRAO = {
   tipoDespesaKey: 'agua',
   nomeCustomDespesa: '',
+  modoTaxaFixa: 'percentual', // 'percentual' | 'valor_total' | 'valor_unidade'
   taxaComumPercent: 0,
+  taxaFixaValor: 0,
   unidades: [
     {
       id: 1,
@@ -140,9 +142,15 @@ function carregarConfiguracao() {
     const salvo = localStorage.getItem('calc_rateio_universal_v2');
     if (salvo) {
       const parsed = JSON.parse(salvo);
-      // Compatibilidade
+      // Compatibilidade com versões anteriores
       if (parsed.apartamentos && !parsed.unidades) {
         parsed.unidades = parsed.apartamentos;
+      }
+      if (!parsed.modoTaxaFixa) {
+        parsed.modoTaxaFixa = 'percentual';
+      }
+      if (typeof parsed.taxaFixaValor !== 'number') {
+        parsed.taxaFixaValor = parseFloat(parsed.taxaFixaValor) || 0;
       }
       return parsed;
     }
@@ -256,12 +264,25 @@ function getMetaDespesaAtual() {
 // Algoritmo de Cálculo Preciso com Ajuste de Centavos
 // -------------------------------------------------------------
 function calcularRateio(valorTotal, volumeTotal = 0) {
+  const modoTaxaFixa = configAtual.modoTaxaFixa || 'percentual';
   const taxaComumPct = (configAtual.taxaComumPercent || 0) / 100;
+  const taxaFixaValor = Math.max(0, parseFloat(configAtual.taxaFixaValor) || 0);
   const numUnidades = configAtual.unidades.length || 1;
   
-  // Parcela Fixa Mínima (divisão igualitária)
-  const valorTotalComum = Math.round(valorTotal * taxaComumPct * 100) / 100;
-  const valorTotalConsumo = valorTotal - valorTotalComum;
+  // Calcula o valor fixo desejado conforme o modo selecionado
+  let valorComumDesejado = 0;
+  if (modoTaxaFixa === 'valor_total') {
+    valorComumDesejado = Math.round(taxaFixaValor * 100) / 100;
+  } else if (modoTaxaFixa === 'valor_unidade') {
+    valorComumDesejado = Math.round(taxaFixaValor * numUnidades * 100) / 100;
+  } else {
+    valorComumDesejado = Math.round(valorTotal * taxaComumPct * 100) / 100;
+  }
+
+  // Proteção: evita saldo negativo caso a fatura seja menor que a taxa fixa
+  const taxaLimitadaPelaFatura = valorTotal > 0 && valorComumDesejado > valorTotal;
+  const valorTotalComum = Math.min(valorComumDesejado, valorTotal);
+  const valorTotalConsumo = Math.max(0, Math.round((valorTotal - valorTotalComum) * 100) / 100);
   
   // Divisão da taxa comum em partes iguais
   const comumPorUnidadeBase = Math.floor((valorTotalComum / numUnidades) * 100) / 100;
@@ -316,7 +337,10 @@ function calcularRateio(valorTotal, volumeTotal = 0) {
   return {
     valorTotal,
     valorTotalComum,
+    valorComumDesejado,
     valorTotalConsumo,
+    taxaLimitadaPelaFatura,
+    modoTaxaFixa,
     somaPesos,
     custoPorPonto,
     taxaComumPct,
@@ -368,13 +392,41 @@ function atualizarTela() {
 
   const dados = calcularRateio(valorTotal, volumeTotal);
 
-  // 4. Atualizar Indicador de Taxa Fixa
+  // 4. Atualizar Indicador de Taxa Fixa e Alerta de Teto
   const lblTaxaComum = document.getElementById('lbl-taxa-comum');
+  const numUnidades = configAtual.unidades.length || 1;
+  const taxaValorCfg = parseFloat(configAtual.taxaFixaValor) || 0;
+
   if (lblTaxaComum) {
-    if (configAtual.taxaComumPercent === 0) {
-      lblTaxaComum.innerHTML = `<strong>0% (Desativada)</strong>`;
+    if (dados.modoTaxaFixa === 'valor_total') {
+      if (taxaValorCfg <= 0) {
+        lblTaxaComum.innerHTML = `<strong>R$ 0,00 (Desativada)</strong>`;
+      } else {
+        lblTaxaComum.innerHTML = `<strong>Fixo Total: ${formatarMoeda(dados.valorTotalComum)} (${formatarMoeda(dados.valorTotalComum / numUnidades)}/unid)</strong>`;
+      }
+    } else if (dados.modoTaxaFixa === 'valor_unidade') {
+      if (taxaValorCfg <= 0) {
+        lblTaxaComum.innerHTML = `<strong>R$ 0,00/unid (Desativada)</strong>`;
+      } else {
+        lblTaxaComum.innerHTML = `<strong>${formatarMoeda(taxaValorCfg)}/unid (Total: ${formatarMoeda(dados.valorTotalComum)})</strong>`;
+      }
     } else {
-      lblTaxaComum.innerHTML = `<strong>${configAtual.taxaComumPercent}% (${formatarMoeda(dados.valorTotalComum)})</strong>`;
+      if ((configAtual.taxaComumPercent || 0) === 0) {
+        lblTaxaComum.innerHTML = `<strong>0% (Desativada)</strong>`;
+      } else {
+        lblTaxaComum.innerHTML = `<strong>${configAtual.taxaComumPercent}% (${formatarMoeda(dados.valorTotalComum)})</strong>`;
+      }
+    }
+  }
+
+  const alertaTeto = document.getElementById('alerta-taxa-teto');
+  const txtAlertaTeto = document.getElementById('txt-alerta-taxa-teto');
+  if (alertaTeto && txtAlertaTeto) {
+    if (dados.taxaLimitadaPelaFatura) {
+      txtAlertaTeto.textContent = `A taxa mínima configurada (${formatarMoeda(dados.valorComumDesejado)}) é maior que a fatura (${formatarMoeda(valorTotal)}). Todo o valor da conta foi dividido igualmente entre as ${numUnidades} unidades.`;
+      alertaTeto.style.display = 'flex';
+    } else {
+      alertaTeto.style.display = 'none';
     }
   }
 
@@ -610,8 +662,14 @@ function copiarParaWhatsApp() {
   msg += `💰 *Valor Total da Fatura:* ${formatarMoeda(valorTotal)}${volTxt}\n`;
   if (dataVencFormatada) msg += dataVencFormatada;
   
-  if (configAtual.taxaComumPercent > 0) {
-    msg += `⚖️ *Critério:* ${configAtual.taxaComumPercent}% Parcela Fixa Compartilhada + Consumo Ponderado\n`;
+  if (dados.valorTotalComum > 0) {
+    if (dados.modoTaxaFixa === 'valor_total') {
+      msg += `⚖️ *Critério:* Taxa Fixa de ${formatarMoeda(dados.valorTotalComum)} (dividida igual) + Consumo Ponderado\n`;
+    } else if (dados.modoTaxaFixa === 'valor_unidade') {
+      msg += `⚖️ *Critério:* Taxa Mínima de ${formatarMoeda(parseFloat(configAtual.taxaFixaValor) || 0)}/unidade + Consumo Ponderado\n`;
+    } else {
+      msg += `⚖️ *Critério:* ${configAtual.taxaComumPercent}% Parcela Fixa Compartilhada + Consumo Ponderado\n`;
+    }
   } else {
     msg += `⚖️ *Critério:* Rateio Proporcional Ponderado por Ocupação/Uso\n`;
   }
@@ -655,6 +713,12 @@ function compartilharLink() {
   if (configAtual.tipoDespesaKey === 'outro' && configAtual.nomeCustomDespesa) {
     params.set('custom', configAtual.nomeCustomDespesa);
   }
+  params.set('modoTaxa', configAtual.modoTaxaFixa || 'percentual');
+  if ((configAtual.modoTaxaFixa || 'percentual') === 'percentual') {
+    params.set('taxaPct', configAtual.taxaComumPercent || 0);
+  } else {
+    params.set('taxaVal', configAtual.taxaFixaValor || 0);
+  }
   if (inputValor.value) params.set('valor', inputValor.value);
   if (inputMes.value) params.set('mes', inputMes.value);
   if (inputVolume.value) params.set('vol', inputVolume.value);
@@ -671,6 +735,9 @@ function carregarValoresDaUrl() {
   const params = new URLSearchParams(window.location.search);
   const tipo = params.get('tipo');
   const custom = params.get('custom');
+  const modoTaxa = params.get('modoTaxa');
+  const taxaPct = params.get('taxaPct');
+  const taxaVal = params.get('taxaVal');
   const valor = params.get('valor');
   const mes = params.get('mes');
   const vol = params.get('vol');
@@ -682,6 +749,15 @@ function carregarValoresDaUrl() {
   if (custom) {
     configAtual.nomeCustomDespesa = custom;
     document.getElementById('input-custom-nome').value = custom;
+  }
+  if (modoTaxa && ['percentual', 'valor_total', 'valor_unidade'].includes(modoTaxa)) {
+    configAtual.modoTaxaFixa = modoTaxa;
+  }
+  if (taxaPct !== null && !isNaN(parseInt(taxaPct, 10))) {
+    configAtual.taxaComumPercent = Math.max(0, Math.min(50, parseInt(taxaPct, 10)));
+  }
+  if (taxaVal !== null && !isNaN(parseFloat(taxaVal))) {
+    configAtual.taxaFixaValor = Math.max(0, parseFloat(taxaVal));
   }
 
   if (valor) document.getElementById('input-valor').value = valor;
@@ -700,19 +776,76 @@ function carregarValoresDaUrl() {
 // -------------------------------------------------------------
 // Modal de Configurações das Unidades
 // -------------------------------------------------------------
+let modoTaxaModalTemp = 'percentual';
+
+function atualizarInterfaceModoTaxaModal() {
+  const btnsModo = document.querySelectorAll('#taxa-modo-selector .taxa-modo-btn');
+  const boxPercentual = document.getElementById('box-cfg-percentual');
+  const boxValor = document.getElementById('box-cfg-valor');
+  const lblValorTitulo = document.getElementById('lbl-cfg-valor-titulo');
+  const inputTaxaValor = document.getElementById('cfg-taxa-valor');
+  const preview = document.getElementById('cfg-taxa-valor-preview');
+
+  btnsModo.forEach(btn => {
+    if (btn.getAttribute('data-modo') === modoTaxaModalTemp) {
+      btn.classList.add('active');
+    } else {
+      btn.classList.remove('active');
+    }
+  });
+
+  if (modoTaxaModalTemp === 'percentual') {
+    boxPercentual.style.display = 'block';
+    boxValor.style.display = 'none';
+  } else {
+    boxPercentual.style.display = 'none';
+    boxValor.style.display = 'block';
+
+    const numUnidades = configAtual.unidades.length || 1;
+    const valDigitado = Math.max(0, parseFloat(inputTaxaValor.value) || 0);
+
+    if (modoTaxaModalTemp === 'valor_total') {
+      lblValorTitulo.textContent = 'Valor Total da Parcela Fixa na Fatura (R$)';
+      const porUnid = valDigitado / numUnidades;
+      preview.textContent = `Equivale a ${formatarMoeda(porUnid)} por unidade (${numUnidades} unidades).`;
+    } else {
+      lblValorTitulo.textContent = 'Valor Fixo por Unidade (R$)';
+      const totalSoma = valDigitado * numUnidades;
+      preview.textContent = `Total fixo somado na fatura: ${formatarMoeda(totalSoma)} (${numUnidades} unidades × ${formatarMoeda(valDigitado)}).`;
+    }
+  }
+}
+
 function abrirModalConfig() {
   const modal = document.getElementById('modal-config');
   const rangeTaxa = document.getElementById('cfg-taxa-comum');
   const lblTaxa = document.getElementById('cfg-taxa-comum-val');
+  const inputTaxaValor = document.getElementById('cfg-taxa-valor');
+  const btnsModo = document.querySelectorAll('#taxa-modo-selector .taxa-modo-btn');
+
+  modoTaxaModalTemp = configAtual.modoTaxaFixa || 'percentual';
 
   rangeTaxa.value = configAtual.taxaComumPercent || 0;
   lblTaxa.textContent = rangeTaxa.value;
+  inputTaxaValor.value = configAtual.taxaFixaValor || 0;
 
   rangeTaxa.oninput = () => {
     lblTaxa.textContent = rangeTaxa.value;
   };
 
+  inputTaxaValor.oninput = () => {
+    atualizarInterfaceModoTaxaModal();
+  };
+
+  btnsModo.forEach(btn => {
+    btn.onclick = () => {
+      modoTaxaModalTemp = btn.getAttribute('data-modo');
+      atualizarInterfaceModoTaxaModal();
+    };
+  });
+
   renderizarTabelaConfig();
+  atualizarInterfaceModoTaxaModal();
   modal.classList.add('open');
 }
 
@@ -762,6 +895,7 @@ function renderizarTabelaConfig() {
       lerInputsConfigAtual();
       configAtual.unidades.splice(idx, 1);
       renderizarTabelaConfig();
+      atualizarInterfaceModoTaxaModal();
     };
   });
 }
@@ -798,6 +932,7 @@ function adicionarNovaUnidade() {
     badgeClass: 'badge-residencial'
   });
   renderizarTabelaConfig();
+  atualizarInterfaceModoTaxaModal();
 }
 
 function fecharModalConfig() {
@@ -807,7 +942,11 @@ function fecharModalConfig() {
 function salvarAlteracoesConfig() {
   lerInputsConfigAtual();
   const rangeTaxa = document.getElementById('cfg-taxa-comum');
+  const inputTaxaValor = document.getElementById('cfg-taxa-valor');
+
+  configAtual.modoTaxaFixa = modoTaxaModalTemp || 'percentual';
   configAtual.taxaComumPercent = parseInt(rangeTaxa.value, 10) || 0;
+  configAtual.taxaFixaValor = Math.max(0, parseFloat(inputTaxaValor.value) || 0);
 
   salvarConfiguracao(configAtual);
   fecharModalConfig();

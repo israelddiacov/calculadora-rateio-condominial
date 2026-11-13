@@ -689,6 +689,107 @@ button {
   text-align: right;
 }
 
+/* Seletor de Modo da Taxa Mínima e Input em R$ */
+.taxa-modo-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.taxa-modo-btn {
+  background-color: #f1f5f9;
+  color: var(--text-main);
+  border: 1px solid var(--border-color);
+  padding: 0.5rem 0.9rem;
+  font-size: 0.825rem;
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+}
+
+.taxa-modo-btn:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+  background-color: #f0f9ff;
+}
+
+.taxa-modo-btn.active {
+  background-color: var(--primary);
+  color: #ffffff;
+  border-color: var(--primary);
+  box-shadow: 0 2px 4px rgba(2, 132, 199, 0.2);
+}
+
+.valor-fixo-container {
+  background: #f8fafc;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 0.9rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.valor-fixo-container label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--secondary);
+}
+
+.valor-fixo-input-wrap {
+  display: flex;
+  align-items: center;
+  border: 1.5px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  background: #ffffff;
+  overflow: hidden;
+  max-width: 240px;
+}
+
+.valor-fixo-input-wrap:focus-within {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
+}
+
+.input-prefix {
+  background: #f1f5f9;
+  color: var(--text-muted);
+  font-weight: 700;
+  font-size: 0.9rem;
+  padding: 0.55rem 0.75rem;
+  border-right: 1px solid var(--border-color);
+}
+
+.valor-fixo-input-wrap input {
+  border: none;
+  outline: none;
+  padding: 0.55rem 0.75rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  font-family: inherit;
+  width: 100%;
+}
+
+.taxa-preview-text {
+  color: var(--primary-dark);
+  font-weight: 600;
+  font-size: 0.825rem;
+}
+
+.alerta-taxa-teto {
+  margin-top: 0.85rem;
+  padding: 0.75rem 1rem;
+  background-color: #fef3c7;
+  border: 1px solid #f59e0b;
+  color: #92400e;
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
 .config-table {
   width: 100%;
   border-collapse: collapse;

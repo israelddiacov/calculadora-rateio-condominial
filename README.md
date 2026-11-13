@@ -28,8 +28,10 @@ A aplicação está disponível publicamente para qualquer morador ou síndico a
   - Ajuste nomes, andares, descrições e pesos a qualquer momento.
 - **Balões Explicativos (Tooltips):**
   - Passe o mouse sobre qualquer campo ou botão para ver dicas instantâneas sobre o que preencher e como funciona.
-- **Parcela Fixa Opcional:**
-  - Permite destinar uma fração da conta (ex: 10%, 15% ou 20%) para ser dividida em cotas rigorosamente iguais entre todas as unidades (cobrindo tarifas de disponibilidade da rede ou despesas mínimas), rateando o restante pelos pesos.
+- **Parcela Fixa / Taxa Mínima Opcional (3 Modos):**
+  - **Porcentagem (% da Fatura):** Destina uma fração da conta (ex: 10%, 15% ou 20%) para ser dividida igualmente entre todas as unidades.
+  - **Valor Fixo Total (R$):** Define um valor fixo da fatura em reais (ex: R$ 150,00) a ser repartido igualmente antes do rateio pelos pesos.
+  - **Valor Fixo por Unidade (R$):** Define uma cota mínima fixa em reais por unidade (ex: R$ 50,00/unidade), rateando apenas o excedente pelos pesos.
 - **Precisão Contábil de Centavos:**
   - Algoritmo financeiro (*Largest Remainder Method*) que garante que a soma dos boletos individuais feche **centavo por centavo** com a fatura da concessionária.
 - **Comunicação Pronta para WhatsApp:**

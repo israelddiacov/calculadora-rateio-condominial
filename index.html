@@ -133,14 +133,18 @@
 
       <!-- Rodapé do Formulário -->
       <div class="form-footer">
-        <div class="taxa-status tooltip-box" data-tooltip="Parcela da conta dividida igualmente entre todos (ex: tarifa mínima, cota básica de rede ou conservação)">
+        <div class="taxa-status tooltip-box" data-tooltip="Parcela da conta dividida igualmente entre todos (por porcentagem % ou valor fixo em R$)">
           <i class="fa-solid fa-sliders"></i>
           <span>Parcela Fixa / Taxa Mínima: <strong id="lbl-taxa-comum">0% (R$ 0,00)</strong></span>
-          <button type="button" class="btn-link tooltip-btn" id="btn-alterar-taxa" data-tooltip="Clique para alterar a porcentagem da cota fixa compartilhada">Alterar</button>
+          <button type="button" class="btn-link tooltip-btn" id="btn-alterar-taxa" data-tooltip="Clique para alternar entre porcentagem (%) ou valor fixo (R$) nas configurações">Alterar</button>
         </div>
         <button id="btn-calcular" class="btn-success tooltip-btn" data-tooltip="Recalcular a divisão de todas as unidades instantaneamente">
           <i class="fa-solid fa-calculator"></i> Atualizar Rateio
         </button>
+      </div>
+      <div class="alerta-taxa-teto" id="alerta-taxa-teto" style="display: none;">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+        <span id="txt-alerta-taxa-teto">A parcela fixa configurada é maior que o valor da fatura atual; todo o valor da fatura foi dividido igualmente.</span>
       </div>
     </section>
 
@@ -289,15 +293,44 @@
         <div class="config-section">
           <h4>1. Parcela Fixa / Taxa Mínima da Concessionária</h4>
           <p class="config-desc">
-            Define a porcentagem da fatura que é dividida <strong>em partes rigorosamente iguais entre todas as unidades</strong> (cobrindo tarifas de disponibilidade de rede, taxa mínima ou custos básicos). O saldo restante é rateado proporcionalmente pelos pesos.
+            Define uma parcela da fatura que é dividida <strong>em partes rigorosamente iguais entre todas as unidades</strong> (cobrindo tarifas de disponibilidade de rede, taxa mínima ou custos básicos). Você pode escolher definir por <strong>porcentagem (%)</strong> ou por <strong>valor fixo em reais (R$)</strong>. O saldo restante é rateado proporcionalmente pelos pesos.
           </p>
-          <div class="range-container">
-            <input type="range" id="cfg-taxa-comum" min="0" max="50" step="1" value="0" class="tooltip-input" data-tooltip="Arraste para ajustar a porcentagem da cota fixa (0% a 50%)" />
-            <div class="range-val">
-              <span id="cfg-taxa-comum-val">0</span>%
+
+          <!-- Seletor de Modo da Taxa Mínima -->
+          <div class="taxa-modo-tabs" id="taxa-modo-selector">
+            <button type="button" class="taxa-modo-btn active tooltip-btn" data-modo="percentual" data-tooltip="Calcula a parcela fixa como uma porcentagem (%) do valor total da fatura">
+              <i class="fa-solid fa-percent"></i> % da Fatura
+            </button>
+            <button type="button" class="taxa-modo-btn tooltip-btn" data-modo="valor_total" data-tooltip="Define um valor fixo total em R$ (ex: R$ 150,00) a ser dividido igualmente entre todas as unidades">
+              <i class="fa-solid fa-brazilian-real-sign"></i> R$ Total Fixo
+            </button>
+            <button type="button" class="taxa-modo-btn tooltip-btn" data-modo="valor_unidade" data-tooltip="Define o valor fixo em R$ que cada unidade paga igualmente (ex: R$ 50,00 por unidade)">
+              <i class="fa-solid fa-house-chimney"></i> R$ por Unidade
+            </button>
+          </div>
+
+          <!-- Painel Modo Percentual -->
+          <div id="box-cfg-percentual">
+            <div class="range-container">
+              <input type="range" id="cfg-taxa-comum" min="0" max="50" step="1" value="0" class="tooltip-input" data-tooltip="Arraste para ajustar a porcentagem da cota fixa (0% a 50%)" />
+              <div class="range-val">
+                <span id="cfg-taxa-comum-val">0</span>%
+              </div>
+            </div>
+            <small class="text-muted">Deixe em <strong>0%</strong> caso prefira que o valor total seja rateado puramente pelos pesos e ocupação.</small>
+          </div>
+
+          <!-- Painel Modo Valor Fixo (Total ou por Unidade) -->
+          <div id="box-cfg-valor" style="display: none;">
+            <div class="valor-fixo-container">
+              <label for="cfg-taxa-valor" id="lbl-cfg-valor-titulo">Valor Total da Parcela Fixa (R$)</label>
+              <div class="valor-fixo-input-wrap">
+                <span class="input-prefix">R$</span>
+                <input type="number" id="cfg-taxa-valor" min="0" step="0.01" value="0" placeholder="0,00" class="tooltip-input" data-tooltip="Digite o valor em reais para a taxa fixa. Deixe em 0 para desativar" />
+              </div>
+              <small class="taxa-preview-text" id="cfg-taxa-valor-preview">Equivale a R$ 0,00 por unidade.</small>
             </div>
           </div>
-          <small class="text-muted">Deixe em <strong>0%</strong> caso prefira que o valor total seja rateado puramente pelos pesos e ocupação.</small>
         </div>
 
         <!-- Tabela Dinâmica de Unidades -->
@@ -385,8 +418,8 @@
 
           <h4>Fórmula Matemática Aplicada</h4>
           <div class="formula-box">
-            <p><strong>1. Parcela Fixa Mínima (se ativada):</strong> <code>(Valor Total × % Fixa) ÷ Total de Unidades</code></p>
-            <p><strong>2. Parcela Variável:</strong> <code>(Valor Total - Parcela Fixa) ÷ Soma de Todos os Pesos</code></p>
+            <p><strong>1. Parcela Fixa Mínima (se ativada):</strong> <code>(Valor Total × % Fixa) ÷ Unidades</code> <em>ou</em> <code>Valor Fixo (R$) ÷ Unidades</code></p>
+            <p><strong>2. Parcela Variável:</strong> <code>(Valor Total - Parcela Fixa Total) ÷ Soma de Todos os Pesos</code></p>
             <p><strong>3. Total de Cada Unidade:</strong> <code>Parcela Fixa + (Peso da Unidade × Custo por Ponto)</code></p>
           </div>
         </div>
